@@ -16,20 +16,34 @@ import machine
 class Ezo_i2c:
     """Class for reading and send commands to an Enzo device via I2C."""
     
-    def __init__(self, i2c:machine.I2C, address:int = 0x63):
+    def __init__(self, i2c:machine.I2C, address:int):
         """
-        Creates a new MPU6050 class for reading gyro rates and acceleration data.
+        Creates a new Ezo_i2c class for reading gyro rates and acceleration data.
         :param i2c: A setup I2C module of the machine module.
-        :param address: The I2C address of the MPU-6050 you are using (0x68 is the default).
+        :param address: The I2C address of the Ezo Sensor you are using (varies from device in device).
         """
         self.address = address
         self.i2c = i2c
         
     def send_cmd(self, cmd:str) -> None:
         """Send command to Ezo device"""
-        self.i2c.writeto(self.address, bytearray(cmd,"ascii"))
+        self.i2c.writeto(self.address, bytes(cmd,"ascii"))
 
-    def recive_cmd(self) -> int:
-        """Send command to Ezo device"""
-        return self.i2c.readfrom(self.address, 1)
+    def recive_cmd(self,nbytes) -> str:
+        """
+        Recive any data from an Ezo device the data output is an string
+        :param nbytes: Lenght of bytes to read from the Ezo Device
+        """
+        raw_data = self.i2c.readfrom(self.address,nbytes)
+        count = 0
+        bytes_data = []
+        for i in raw_data:
+            if i == 1:
+                print("OK")
+            if count > 0:
+                bytes_data.append(i)
+            if i == 0:
+                break
+            count += 1
+        return  "".join(map(chr, bytes_data)) # Convert bytes encoded in ASCII
     
